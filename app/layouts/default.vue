@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Layout 通常不需要太多邏輯，主要負責結構
+// Nuxt 4 自動引入 components，無需手動 import CartDrawer
 </script>
 
 <template>
@@ -18,5 +18,8 @@
         </p>
       </div>
     </footer>
+
+    <CartDrawer />
+    
   </div>
 </template>

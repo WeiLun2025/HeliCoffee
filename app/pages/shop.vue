@@ -58,7 +58,6 @@ const currentProducts = computed(() => {
               :src="item.image_url" 
               :alt="item.name"
               class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-              referrerpolicy="no-referrer"
             >
             <div v-if="item.is_new_arrival" class="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">NEW</div>
           </div>
@@ -79,13 +78,9 @@ const currentProducts = computed(() => {
           </button>
         </div>
       </div>
-      
-      <div v-if="!productStore.isLoading && currentProducts.length === 0" class="text-center py-20 text-gray-400">
-        <p>目前此分類尚無商品上架。</p>
-      </div>
-
     </div>
 
     <CartDrawer />
+    
   </div>
 </template>

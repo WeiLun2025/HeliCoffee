@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+// 1. 引入 Store (Nuxt 自動引入，不需要 import)
+const cartStore = useCartStore()
 
 // 控制手機版選單開關
 const isMobileMenuOpen = ref(false)
@@ -8,7 +10,6 @@ const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 
-// 選單項目設定，方便維護
 const navLinks = [
   { name: '關於我們', path: '/about' },
   { name: '美味菜單', path: '/menu' },
@@ -35,11 +36,20 @@ const navLinks = [
             {{ link.name }}
           </NuxtLink>
           
-          <button class="relative hover:text-[#D4B483] transition p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <button 
+            @click="cartStore.isCartOpen = !cartStore.isCartOpen"
+            class="relative hover:text-[#D4B483] transition p-2 group"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 group-hover:scale-110 transition-transform">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
             </svg>
-            <span class="absolute -top-1 -right-1 bg-[#D4B483] text-[#2C1810] text-xs font-bold px-1.5 py-0.5 rounded-full">0</span>
+            
+            <span 
+              v-if="cartStore.totalItems > 0"
+              class="absolute -top-1 -right-1 bg-[#D4B483] text-[#2C1810] text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] flex items-center justify-center animate-bounce"
+            >
+              {{ cartStore.totalItems }}
+            </span>
           </button>
         </div>
 
@@ -62,6 +72,16 @@ const navLinks = [
           >
             {{ link.name }}
           </NuxtLink>
+          
+          <button 
+            @click="cartStore.isCartOpen = true; isMobileMenuOpen = false"
+            class="flex items-center space-x-2 px-2 py-1 hover:text-[#D4B483] text-left w-full"
+          >
+             <span>我的購物車</span>
+             <span v-if="cartStore.totalItems > 0" class="bg-[#D4B483] text-[#2C1810] text-xs font-bold px-2 py-0.5 rounded-full">
+               {{ cartStore.totalItems }}
+             </span>
+          </button>
         </div>
       </div>
     </div>
