@@ -25,6 +25,9 @@
             線上訂購
           </NuxtLink>
         </div>
+
+        <HomeVisit />
+        
       </div>
     </section>
   </div>
