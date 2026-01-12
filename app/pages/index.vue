@@ -6,6 +6,8 @@
   <div>
     <HomeCarousel />
 
+    <HomeNews />
+
     <section class="py-16 md:py-24 bg-[#F8F5F2]">
       <div class="container mx-auto px-4 text-center">
         <h1 class="text-3xl md:text-4xl font-bold text-[#2C1810] mb-6 tracking-wider">
@@ -27,7 +29,7 @@
         </div>
 
         <HomeVisit />
-        
+
       </div>
     </section>
   </div>
