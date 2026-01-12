@@ -1,5 +1,11 @@
 <script setup lang="ts">
-// 這裡可以放全域的 SEO 設定 (Meta tags)
+const cartStore = useCartStore()
+
+// App 初始化時，從 LocalStorage 讀取購物車
+onMounted(() => {
+  cartStore.initCart()
+})
+
 useHead({
   title: '河狸咖啡 Heli Coffee',
   meta: [
