@@ -17,9 +17,9 @@ export default defineNuxtConfig({
   },
 
   // 2. Pinia 設定 (可選，預設即可)
-  pinia: {
-    storesDirs: ['./stores/**'],
-  },
+  // pinia: {
+  //   storesDirs: ['./stores/**'],
+  // },
   
   // 讓 TypeScript 檢查更嚴格一些，符合我們的高品質要求
   typescript: {
