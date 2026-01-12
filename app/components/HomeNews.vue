@@ -17,6 +17,17 @@ const getTagColor = (tag) => {
   }
   return map[tag] || 'bg-gray-100 text-gray-700'
 }
+// 在 <script setup> 中加入這個 helper function
+const formatDate = (isoString) => {
+  if (!isoString) return ''
+  const date = new Date(isoString)
+  // 轉回當地時間 (瀏覽器會自動抓使用者的時區，如台灣)
+  return date.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+}
 </script>
 
 <template>
@@ -42,7 +53,7 @@ const getTagColor = (tag) => {
         >
           <div class="flex justify-between items-start mb-4">
             <span class="text-sm font-mono text-stone-500 bg-white px-2 py-1 rounded border border-stone-100">
-              {{ item.date }}
+              {{ formatDate(item.date) }}
             </span>
             <span 
               :class="getTagColor(item.tag)"
