@@ -40,8 +40,12 @@ export const useNewsStore = defineStore('news', () => {
       
       // 這裡假設你的 GAS doGet 會回傳 { data: { Home_News: [...] } }
       // 或是你需要傳參數 ?action=getNews
-      const response = await fetch(`${API_URL}?action=getNews`) 
+      const response = await fetch(`${API_URL}?type=news`)
       const json = await response.json()
+      
+      if (json.status === 'success') {
+        newsList.value = json.data
+      }
 
       // 根據你的 GAS 回傳結構調整這裡
       // 假設回傳結構是陣列，或者是在 data.Home_News 裡
