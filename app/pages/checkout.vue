@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCartStore } from '~/stores/cart' // 確保引入 Store
+import AppModal from '~/components/AppModal.vue'
 
 const cartStore = useCartStore()
 const router = useRouter()
@@ -17,11 +19,25 @@ const RATES = {
   MAIL: 40
 }
 
+// Modal 狀態控制
+const modalState = ref({
+  isOpen: false,
+  title: '',
+  isError: false,
+  data: {
+    orderId: '',
+    total: 0,
+    itemCount: 0,
+    errorMessage: ''
+  }
+})
+
 // 頁面載入檢查
 onMounted(() => {
   if (cartStore.totalItems === 0) {
-    alert('購物車是空的，請先選購商品')
-    router.push('/shop')
+    showModal('購物車是空的', '請先至線上商店選購商品', true)
+    // 這裡不直接 push，讓使用者按關閉後再跳轉，或稍微延遲
+    setTimeout(() => router.push('/shop'), 1500)
   }
 })
 
@@ -76,20 +92,40 @@ const getShippingMethodName = (method: string) => {
   return map[method] || method
 }
 
+// Helper: 顯示彈窗
+const showModal = (title: string, msg: string, isError: boolean = false) => {
+  modalState.value = {
+    isOpen: true,
+    title,
+    isError,
+    data: { ...modalState.value.data, errorMessage: msg }
+  }
+}
+
+// 處理 Modal 關閉後的邏輯
+const handleModalClose = () => {
+  modalState.value.isOpen = false
+  // 如果是成功送出訂單 (有 orderId 且無錯誤)，關閉後跳回首頁
+  if (!modalState.value.isError && modalState.value.data.orderId) {
+    router.push('/shop')
+  }
+}
+
 // 送出訂單
 const submitOrder = async () => {
+  // 驗證邏輯：改用 Modal 顯示錯誤
   if (!form.name || !form.phone) {
-    alert('請填寫姓名與電話')
+    showModal('資料不完整', '請填寫姓名與電話', true)
     return
   }
   
   if ((form.shippingMethod === '711' || form.shippingMethod === 'family') && !form.storeInfo) {
-    alert('請填寫超商門市名稱/店號')
+    showModal('資料不完整', '請填寫超商門市名稱/店號', true)
     return
   }
 
   if ((form.shippingMethod === 'home' || form.shippingMethod === 'local') && !form.address) {
-    alert('請填寫收件地址')
+    showModal('資料不完整', '請填寫收件地址', true)
     return
   }
 
@@ -114,42 +150,53 @@ const submitOrder = async () => {
       email: form.email,
       address: addressString,
       note: form.note,
-      // 這裡記錄詳細運送資訊給後台
       shipping_details: `方式:${getShippingMethodName(form.shippingMethod)} | 運費:$${shippingFee.value}`
     }
 
+    // 先把當下的金額跟數量存起來 (因為成功後會清空購物車)
+    const currentTotal = finalTotal.value
+    const currentItemCount = cartStore.items.length
+
     const orderData = {
-      action: 'order', // 告訴 GAS 這是訂單
+      action: 'order',
       customer: customerPayload,
       items: cartStore.items,
-      total: finalTotal.value
+      total: currentTotal
     }
 
-    // ★ 請確認這裡是正確的 GAS URL
-    // const GAS_URL = 'https://script.google.com/macros/s/AKfycby0BtunfaTvNxZDpkSOquKFKshAMTQhL7F0T-BXkqG89c1u_95weKGGJ-2xqomF52fGtw/exec'
     const API_BASE_URL = config.public.apiBase
 
     const response = await fetch(API_BASE_URL, {
       method: 'POST',
-      // GAS 需要使用 text/plain 以避免 CORS 預檢 (雖然有時 application/json 也可以，但 text/plain 最穩)
       body: JSON.stringify(orderData)
     })
 
     const result = await response.json()
 
     if (result.status === 'success') {
-      const savedSubtotal = cartStore.subtotal
-      cartStore.clearCart() // 清空購物車與表單
+      // 1. 清空購物車
+      cartStore.clearCart() 
       
-      alert(`訂單已送出！\n商品金額：$${savedSubtotal}\n\n運費與最終金額將由專人核對後，主動聯繫您進行匯款。`)
-      router.push('/')
+      // 2. 設定成功彈窗資料
+      modalState.value = {
+        isOpen: true,
+        title: '🎉 訂單已送出！',
+        isError: false,
+        data: {
+          orderId: result.orderId, // 假設後端回傳 orderId
+          total: currentTotal,
+          itemCount: currentItemCount,
+          errorMessage: ''
+        }
+      }
+      // 注意：這裡不 router.push，改在 handleModalClose 處理
     } else {
       throw new Error(result.message || '未知錯誤')
     }
 
   } catch (e: any) {
     console.error(e)
-    alert('訂單送出失敗：' + e.message)
+    showModal('訂單送出失敗', e.message, true)
   } finally {
     isSubmitting.value = false
   }
@@ -158,6 +205,48 @@ const submitOrder = async () => {
 
 <template>
   <div class="bg-[#f8f9fa] min-h-screen py-12 px-4">
+    
+    <AppModal 
+      :is-open="modalState.isOpen"
+      :title="modalState.title"
+      :is-error="modalState.isError"
+      @close="handleModalClose"
+    >
+      <div v-if="modalState.isError">
+        <p class="text-red-600 font-bold mb-2">發生錯誤：</p>
+        <p>{{ modalState.data.errorMessage }}</p>
+      </div>
+
+      <div v-else class="space-y-3">
+        <p class="text-center mb-4 text-stone-500">
+          感謝您的訂購！<br>我們將盡快確認庫存並安排出貨。
+        </p>
+        
+        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 space-y-2">
+          <div class="flex justify-between border-b border-stone-200 pb-2">
+            <span class="font-bold text-stone-700">訂單編號</span>
+            <span class="text-amber-700 font-mono font-bold">{{ modalState.data.orderId }}</span>
+          </div>
+          
+          <div class="flex justify-between">
+            <span class="text-stone-500">商品數量</span>
+            <span class="font-medium">{{ modalState.data.itemCount }} 項</span>
+          </div>
+
+          <div class="flex justify-between pt-2 border-t border-stone-200 mt-2">
+            <span class="font-bold text-stone-800">總金額</span>
+            <span class="font-bold text-xl text-amber-800">NT$ {{ modalState.data.total }}</span>
+          </div>
+        </div>
+
+        <div class="mt-4 p-3 bg-amber-50 rounded text-xs text-amber-900 leading-relaxed">
+          <strong>付款提醒：</strong><br>
+          後續將由專人核對運費與金額，並透過 Email 或電話聯繫您進行匯款。請留意您的聯絡方式。
+        </div>
+      </div>
+    </AppModal>
+
+
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
       
       <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 h-fit">

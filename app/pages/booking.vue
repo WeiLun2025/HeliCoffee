@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import AppModal from '~/components/AppModal.vue'
 
 const config = useRuntimeConfig()
 
@@ -11,6 +12,22 @@ const form = ref({
   time: '14:00', // 預設下午茶時段
   people: 2,
   note: ''
+})
+
+// 定義 Modal 的資料狀態
+const modalState = ref({
+  isOpen: false,
+  title: '',
+  isError: false,
+  // 專門存放在 slot 顯示的資料
+  data: {
+    bookingId: '',
+    name: '',
+    date: '',
+    time: '',
+    people: 0,
+    errorMessage: ''
+  }
 })
 
 const isSubmitting = ref(false)
@@ -52,23 +69,32 @@ const submitBooking = async () => {
     const result = await response.json()
 
     if (result.status === 'success') {
-      alert(`訂位需求已送出！\n我們將盡快確認您的訂位。\n訂位編號：${result.bookingId}`)
-      // 重置表單
-      form.value = {
-        name: '',
-        phone: '',
-        date: '',
-        time: '14:00',
-        people: 2,
-        note: ''
+      // 成功：填入資料並開啟 Modal
+      modalState.value = {
+        isOpen: true,
+        title: '🎉 預約成功！',
+        isError: false,
+        data: {
+          bookingId: result.bookingId, // 從後端回傳
+          errorMessage: '',
+          ...form.value // 把使用者原本填的也帶進去顯示
+        }
       }
+      
+      // 清空表單
+      form.value = { name: '', phone: '', date: '', time: '14:00', people: 2, note: '' }
     } else {
       throw new Error(result.message)
     }
 
   } catch (e: any) {
-    console.error(e)
-    alert('訂位失敗，請稍後再試或直接來電：' + e.message)
+    // 失敗
+    modalState.value = {
+      isOpen: true,
+      title: '預約失敗',
+      isError: true,
+      data: { errorMessage: e.message, bookingId: '', name: '', date: '', time: '', people: 0 }
+    }
   } finally {
     isSubmitting.value = false
   }
@@ -199,4 +225,37 @@ const submitBooking = async () => {
       </div>
     </div>
   </div>
+  
+  <AppModal 
+    :is-open="modalState.isOpen"
+    :title="modalState.title"
+    :is-error="modalState.isError"
+    @close="modalState.isOpen = false"
+  >
+    <div v-if="modalState.isError">
+      <p class="text-red-600 font-bold">系統發生錯誤：</p>
+      <p>{{ modalState.data.errorMessage }}</p>
+    </div>
+
+    <div v-else class="space-y-2">
+      <p class="text-center mb-4 text-stone-500">感謝您的預約，期待您的光臨！</p>
+      <div class="flex justify-between border-b border-stone-200 pb-2">
+        <span class="font-bold text-stone-700">訂位編號</span>
+        <span class="text-amber-700 font-mono font-bold">{{ modalState.data.bookingId }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-stone-500">姓名</span>
+        <span class="font-medium">{{ modalState.data.name }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-stone-500">時間</span>
+        <span class="font-medium">{{ modalState.data.date }} {{ modalState.data.time }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-stone-500">人數</span>
+        <span class="font-medium">{{ modalState.data.people }} 位</span>
+      </div>
+    </div>
+  </AppModal>
+
 </template>
