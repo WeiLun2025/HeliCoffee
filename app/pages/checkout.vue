@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useCartStore } from '~/stores/cart' // 確保引入 Store
+import { useCartStore } from '~/stores/cart'
 import AppModal from '~/components/AppModal.vue'
 
 const cartStore = useCartStore()
@@ -28,6 +28,7 @@ const modalState = ref({
     orderId: '',
     total: 0,
     itemCount: 0,
+    items: [] as any[], // ★ 新增：用來存商品清單
     errorMessage: ''
   }
 })
@@ -36,7 +37,7 @@ const modalState = ref({
 onMounted(() => {
   if (cartStore.totalItems === 0) {
     showModal('購物車是空的', '請先至線上商店選購商品', true)
-    // 這裡不直接 push，讓使用者按關閉後再跳轉，或稍微延遲
+    // 延遲後跳轉
     setTimeout(() => router.push('/shop'), 1500)
   }
 })
@@ -105,15 +106,15 @@ const showModal = (title: string, msg: string, isError: boolean = false) => {
 // 處理 Modal 關閉後的邏輯
 const handleModalClose = () => {
   modalState.value.isOpen = false
-  // 如果是成功送出訂單 (有 orderId 且無錯誤)，關閉後跳回首頁
+  // 如果是成功送出訂單 (有 orderId 且無錯誤)，關閉後跳回商店
   if (!modalState.value.isError && modalState.value.data.orderId) {
-    router.push('/shop')
+    router.push('/shop') // ★ 跳轉回線上商店
   }
 }
 
 // 送出訂單
 const submitOrder = async () => {
-  // 驗證邏輯：改用 Modal 顯示錯誤
+  // 驗證邏輯
   if (!form.name || !form.phone) {
     showModal('資料不完整', '請填寫姓名與電話', true)
     return
@@ -153,9 +154,10 @@ const submitOrder = async () => {
       shipping_details: `方式:${getShippingMethodName(form.shippingMethod)} | 運費:$${shippingFee.value}`
     }
 
-    // 先把當下的金額跟數量存起來 (因為成功後會清空購物車)
+    // ★ 關鍵：先把當下的金額、數量、商品清單存起來 (因為成功後會清空購物車)
     const currentTotal = finalTotal.value
     const currentItemCount = cartStore.items.length
+    const currentItems = JSON.parse(JSON.stringify(cartStore.items)) // 深拷貝
 
     const orderData = {
       action: 'order',
@@ -183,13 +185,13 @@ const submitOrder = async () => {
         title: '🎉 訂單已送出！',
         isError: false,
         data: {
-          orderId: result.orderId, // 假設後端回傳 orderId
+          orderId: result.orderId, 
           total: currentTotal,
           itemCount: currentItemCount,
+          items: currentItems, // ★ 把備份的清單塞進去
           errorMessage: ''
         }
       }
-      // 注意：這裡不 router.push，改在 handleModalClose 處理
     } else {
       throw new Error(result.message || '未知錯誤')
     }
@@ -222,15 +224,20 @@ const submitOrder = async () => {
           感謝您的訂購！<br>我們將盡快確認庫存並安排出貨。
         </p>
         
-        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 space-y-2">
+        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200 space-y-3">
           <div class="flex justify-between border-b border-stone-200 pb-2">
             <span class="font-bold text-stone-700">訂單編號</span>
-            <span class="text-amber-700 font-mono font-bold">{{ modalState.data.orderId }}</span>
+            <span class="text-amber-700 font-mono font-bold text-sm">{{ modalState.data.orderId || '處理中...' }}</span>
           </div>
           
-          <div class="flex justify-between">
-            <span class="text-stone-500">商品數量</span>
-            <span class="font-medium">{{ modalState.data.itemCount }} 項</span>
+          <div>
+            <span class="text-xs font-bold text-stone-500 mb-1 block">訂購內容</span>
+            <ul class="text-sm space-y-1 max-h-32 overflow-y-auto pr-1">
+              <li v-for="item in modalState.data.items" :key="item.id" class="flex justify-between text-stone-700">
+                <span>{{ item.name }}</span>
+                <span class="font-mono text-stone-500">x{{ item.quantity }}</span>
+              </li>
+            </ul>
           </div>
 
           <div class="flex justify-between pt-2 border-t border-stone-200 mt-2">
