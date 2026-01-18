@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+const config = useRuntimeConfig()
+
 // 定義新聞資料介面
 export interface NewsItem {
   id: string
@@ -18,7 +20,8 @@ export const useNewsStore = defineStore('news', () => {
 
   // 替換成你的 Google Apps Script 部署網址
   // 建議之後移到 .env 或 nuxt.config.ts
-  const API_URL = 'https://script.google.com/macros/s/AKfycby0BtunfaTvNxZDpkSOquKFKshAMTQhL7F0T-BXkqG89c1u_95weKGGJ-2xqomF52fGtw/exec' 
+  // const API_URL = 'https://script.google.com/macros/s/AKfycby0BtunfaTvNxZDpkSOquKFKshAMTQhL7F0T-BXkqG89c1u_95weKGGJ-2xqomF52fGtw/exec' 
+  const API_BASE_URL = config.public.apiBase
 
   // 取得並整理新聞 (Getter)
   const activeNews = computed(() => {
@@ -40,9 +43,9 @@ export const useNewsStore = defineStore('news', () => {
       
       // 這裡假設你的 GAS doGet 會回傳 { data: { Home_News: [...] } }
       // 或是你需要傳參數 ?action=getNews
-      const response = await fetch(`${API_URL}?type=news`)
+      const response = await fetch(`${API_BASE_URL}?type=news`)
       const json = await response.json()
-      
+
       if (json.status === 'success') {
         newsList.value = json.data
       }

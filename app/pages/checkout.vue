@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 
 const cartStore = useCartStore()
 const router = useRouter()
+const config = useRuntimeConfig()
 
 // 綁定 Store 裡的暫存表單
 const form = cartStore.customerDraft
@@ -125,9 +126,10 @@ const submitOrder = async () => {
     }
 
     // ★ 請確認這裡是正確的 GAS URL
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycby0BtunfaTvNxZDpkSOquKFKshAMTQhL7F0T-BXkqG89c1u_95weKGGJ-2xqomF52fGtw/exec'
+    // const GAS_URL = 'https://script.google.com/macros/s/AKfycby0BtunfaTvNxZDpkSOquKFKshAMTQhL7F0T-BXkqG89c1u_95weKGGJ-2xqomF52fGtw/exec'
+    const API_BASE_URL = config.public.apiBase
 
-    const response = await fetch(GAS_URL, {
+    const response = await fetch(API_BASE_URL, {
       method: 'POST',
       // GAS 需要使用 text/plain 以避免 CORS 預檢 (雖然有時 application/json 也可以，但 text/plain 最穩)
       body: JSON.stringify(orderData)

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+const config = useRuntimeConfig()
+
 // 定義表單資料
 const form = ref({
   name: '',
@@ -18,8 +20,8 @@ const minDate = new Date().toISOString().split('T')[0]
 
 // 可選時段 (可依店家營業時間調整)
 const timeSlots = [
-  '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
-  '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+  '11:00', '11:30', '12:00', '12:30', '13:00', 
+  '13:30', '14:00', '14:30', '15:00', '15:30',
   '16:00', '16:30', '17:00'
 ]
 
@@ -37,10 +39,12 @@ const submitBooking = async () => {
       ...form.value
     }
 
-    // ★ 請確認這裡是正確的 GAS URL (跟購物車用同一個)
-    const GAS_URL = 'https://script.google.com/macros/s/你的ID/exec'
 
-    const response = await fetch(GAS_URL, {
+    // ★ 請確認這裡是正確的 GAS URL (跟購物車用同一個)
+    // const GAS_URL = 'https://script.google.com/macros/s/AKfycby0BtunfaTvNxZDpkSOquKFKshAMTQhL7F0T-BXkqG89c1u_95weKGGJ-2xqomF52fGtw/exec'
+    const API_BASE_URL = config.public.apiBase // 這裡維持你習慣的變數名，但來源改了
+
+    const response = await fetch(API_BASE_URL, {
       method: 'POST',
       body: JSON.stringify(payload) // GAS 需要 text/plain
     })
@@ -91,7 +95,7 @@ const submitBooking = async () => {
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
             </svg>
-            <span class="font-bold">03-888-8888</span>
+            <span class="font-bold">0912-407-147</span>
           </div>
         </div>
       </div>

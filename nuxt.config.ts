@@ -23,7 +23,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // 之後我們會將部署好的 GAS Web App URL 填入 .env 檔案
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || ''
+      apiBase: '',
     }
   },
 

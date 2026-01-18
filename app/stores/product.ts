@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 
+const config = useRuntimeConfig()
 // ==========================================
 // 1. 定義資料介面 (Interfaces)
 // ==========================================
@@ -72,11 +73,12 @@ export const useProductStore = defineStore('product', {
      * 共用的 Fetch 處理器 (內部使用)
      */
     async _fetchData(type: string) {
-      const config = useRuntimeConfig()
       // 如果環境變數還沒設，請在下方引號填入你的 GAS 網址
-      const GAS_BASE_URL = config.public.gasUrl || 'https://script.google.com/macros/s/AKfycby0BtunfaTvNxZDpkSOquKFKshAMTQhL7F0T-BXkqG89c1u_95weKGGJ-2xqomF52fGtw/exec'
+      // const GAS_BASE_URL = config.public.gasUrl || 'https://script.google.com/macros/s/AKfycby0BtunfaTvNxZDpkSOquKFKshAMTQhL7F0T-BXkqG89c1u_95weKGGJ-2xqomF52fGtw/exec'
+      const API_BASE_URL = config.public.apiBase
       try {
-        const response = await fetch(`${GAS_BASE_URL}?type=${type}`)
+        const response = await fetch(`${API_BASE_URL}?type=${type}`)
+        // const response = await fetch(`${GAS_BASE_URL}?type=${type}`)
         const result = await response.json()
         
         if (result.status === 'success') {
