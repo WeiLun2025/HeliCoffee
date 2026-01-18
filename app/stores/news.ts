@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-const config = useRuntimeConfig()
-
 // 定義新聞資料介面
 export interface NewsItem {
   id: string
@@ -17,6 +15,7 @@ export const useNewsStore = defineStore('news', () => {
   const newsList = ref<NewsItem[]>([])
   const isLoading = ref(false)
   const lastFetched = ref(0) // 用來做簡易快取機制
+  const config = useRuntimeConfig()
 
   // 替換成你的 Google Apps Script 部署網址
   // 建議之後移到 .env 或 nuxt.config.ts
