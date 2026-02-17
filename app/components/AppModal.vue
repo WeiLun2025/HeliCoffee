@@ -1,11 +1,33 @@
 <script setup>
-defineProps({
+import { watch, onUnmounted } from 'vue'
+
+// 定義 Props
+const props = defineProps({
   isOpen: Boolean,
   title: String,
   isError: Boolean
 })
 
 const emit = defineEmits(['close'])
+
+// 鎖定背景滾動邏輯
+watch(() => props.isOpen, (newValue) => {
+  // 確保在客戶端執行 (Nuxt SSR 防呆)
+  if (import.meta.client) {
+    if (newValue) {
+      document.body.style.overflow = 'hidden' // 鎖住滾輪
+    } else {
+      document.body.style.overflow = '' // 恢復滾輪
+    }
+  }
+})
+
+// 組件卸載時防呆 (確保離開頁面後滾輪恢復)
+onUnmounted(() => {
+  if (import.meta.client) {
+    document.body.style.overflow = ''
+  }
+})
 </script>
 
 <template>
