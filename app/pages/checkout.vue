@@ -44,11 +44,15 @@ onMounted(() => {
 
 // 運費計算邏輯
 const shippingFee = computed(() => {
-  if (form.locationType === 'hualien') return 0
+  if (form.locationType === 'hualien') {
+    return 0
+  }
   if (form.shippingMethod === '711' || form.shippingMethod === 'family') {
     return cartStore.subtotal >= 1000 ? 0 : RATES.CONVENIENCE
   } else if (form.shippingMethod === 'home') {
-    if (cartStore.subtotal >= 1000) return RATES.HOME - RATES.CONVENIENCE
+    if (cartStore.subtotal >= 1000) {
+      return RATES.HOME - RATES.CONVENIENCE // 滿額折抵部分運費
+    }
     return RATES.HOME
   } else if (form.shippingMethod === 'mail') {
     return RATES.MAIL
@@ -64,7 +68,10 @@ watch(() => form.locationType, (newVal) => {
   if (newVal === 'hualien') {
     form.shippingMethod = 'local'
   } else {
-    if (form.shippingMethod === 'local') form.shippingMethod = '711'
+    // 切換到外縣市，預設選 7-11
+    if (form.shippingMethod === 'local') {
+      form.shippingMethod = '711'
+    }
   }
   cartStore.saveToLocalStorage()
 })
@@ -77,8 +84,11 @@ watch(form, () => {
 // 取得運送方式中文名稱
 const getShippingMethodName = (method: string) => {
   const map: Record<string, string> = {
-    local: '店家外送', '711': '7-11 取貨', family: '全家取貨',
-    home: '黑貓宅急便', mail: '郵寄 (僅限濾掛)'
+    local: '店家外送',
+    '711': '7-11 取貨',
+    family: '全家取貨',
+    home: '黑貓宅急便',
+    mail: '郵寄 (僅限濾掛)'
   }
   return map[method] || method
 }
@@ -125,17 +135,30 @@ const submitOrder = async () => {
   try {
     // 組合地址字串
     let addressString = ''
-    if (form.shippingMethod === '711') addressString = `[7-11取貨] ${form.storeInfo}`
-    else if (form.shippingMethod === 'family') addressString = `[全家取貨] ${form.storeInfo}`
-    else if (form.locationType === 'hualien') addressString = `[花蓮外送] ${form.address}`
-    else addressString = `[宅配] ${form.address}`
+    if (form.shippingMethod === '711') {
+      addressString = `[7-11取貨] ${form.storeInfo}`
+    } else if (form.shippingMethod === 'family') {
+      addressString = `[全家取貨] ${form.storeInfo}`
+    } else if (form.locationType === 'hualien') {
+      addressString = `[花蓮外送] ${form.address}`
+    } else {
+      addressString = `[宅配] ${form.address}`
+    }
+
+    // ★ 修改這裡：組合備註
+    // 如果有填寫甜點備註，把它加到一般備註的前面，用括號包起來比較明顯
+    let finalNote = form.note
+    if (form.dessertNote) {
+      finalNote = `【甜點需求：${form.dessertNote}】\n${form.note}`
+    }
 
     const customerPayload = {
       name: form.name,
       phone: form.phone,
       email: form.email,
       address: addressString,
-      note: form.note,
+      note: finalNote, // ★ 傳送組合後的備註
+      dessert_note: form.dessertNote || '',
       shipping_details: `方式:${getShippingMethodName(form.shippingMethod)} | 運費:$${shippingFee.value}`
     }
 
@@ -358,18 +381,33 @@ const submitOrder = async () => {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Email <span class="text-red-500">*</span>
-            </label>
-            <input 
-              v-model="form.email" 
-              type="email" 
-              required
-              placeholder="example@email.com"
-              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-700 outline-none"
-            >
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input v-model="form.email" type="email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-700 outline-none">
           </div>
-
+          <transition
+            enter-active-class="transition duration-300 ease-out"
+            enter-from-class="opacity-0 -translate-y-2"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition duration-200 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 -translate-y-2"
+          >
+            <div v-if="cartStore.hasCake" class="bg-pink-50 p-4 rounded-lg border border-pink-100">
+              <label class="block text-sm font-bold text-pink-800 mb-2  items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 mr-2">
+                  <path fill-rule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177 7.547 7.547 0 01-1.705-1.715.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clip-rule="evenodd" />
+                </svg>
+                手作甜點客製化需求
+              </label>
+              <input 
+                v-model="form.dessertNote" 
+                type="text" 
+                placeholder="例如：都要減糖、起司蛋糕不要鮮奶油..." 
+                class="w-full px-4 py-2 bg-white border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 outline-none text-pink-900 placeholder-pink-300"
+              >
+              <p class="text-xs text-pink-600 mt-1">若無特殊需求可留空。</p>
+            </div>
+          </transition>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">備註事項</label>
             <textarea v-model="form.note" rows="2" placeholder="例如：管理室代收、避開中午時段..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-700 outline-none"></textarea>

@@ -17,6 +17,7 @@ interface CustomerDraft {
   email: string
   address: string
   note: string
+  dessertNote: string // <--- 這行一定要有！
 }
 
 export const useCartStore = defineStore('cart', {
@@ -32,7 +33,8 @@ export const useCartStore = defineStore('cart', {
       phone: '',
       email: '',
       address: '',
-      note: ''
+      note: '',
+      dessertNote: '' // ★ 新增：甜點專屬備註
     } as CustomerDraft
   }),
 
@@ -55,6 +57,10 @@ export const useCartStore = defineStore('cart', {
       if (hasCoffee && hasCake) return 'mixed'
       if (hasCake) return 'cool'
       return 'normal'
+    },
+    // ★ 新增 Getter：檢查購物車內是否有蛋糕
+    hasCake: (state) => {
+      return state.items.some(item => item.category === 'cake')
     }
   },
 
@@ -99,7 +105,8 @@ export const useCartStore = defineStore('cart', {
         phone: '',
         email: '',
         address: '',
-        note: ''
+        note: '',
+        dessertNote: '' // ★ 修正重點 4：重置時也要加
       }
       this.saveToLocalStorage()
     },
@@ -127,7 +134,12 @@ export const useCartStore = defineStore('cart', {
             } else {
               this.items = parsed.items || []
               if (parsed.customerDraft) {
-                this.customerDraft = parsed.customerDraft
+                // ★ 修改這裡：使用解構賦值來「合併」
+                // 先拿預設值 (包含 dessertNote: '')，再蓋上 LocalStorage 的舊資料
+                this.customerDraft = {
+                  ...this.customerDraft, 
+                  ...parsed.customerDraft
+                }
               }
             }
           } catch (e) {
