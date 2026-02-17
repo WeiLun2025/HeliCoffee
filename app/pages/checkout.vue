@@ -44,15 +44,11 @@ onMounted(() => {
 
 // 運費計算邏輯
 const shippingFee = computed(() => {
-  if (form.locationType === 'hualien') {
-    return 0
-  }
+  if (form.locationType === 'hualien') return 0
   if (form.shippingMethod === '711' || form.shippingMethod === 'family') {
     return cartStore.subtotal >= 1000 ? 0 : RATES.CONVENIENCE
   } else if (form.shippingMethod === 'home') {
-    if (cartStore.subtotal >= 1000) {
-      return RATES.HOME - RATES.CONVENIENCE // 滿額折抵部分運費
-    }
+    if (cartStore.subtotal >= 1000) return RATES.HOME - RATES.CONVENIENCE
     return RATES.HOME
   } else if (form.shippingMethod === 'mail') {
     return RATES.MAIL
@@ -68,10 +64,7 @@ watch(() => form.locationType, (newVal) => {
   if (newVal === 'hualien') {
     form.shippingMethod = 'local'
   } else {
-    // 切換到外縣市，預設選 7-11
-    if (form.shippingMethod === 'local') {
-      form.shippingMethod = '711'
-    }
+    if (form.shippingMethod === 'local') form.shippingMethod = '711'
   }
   cartStore.saveToLocalStorage()
 })
@@ -84,11 +77,8 @@ watch(form, () => {
 // 取得運送方式中文名稱
 const getShippingMethodName = (method: string) => {
   const map: Record<string, string> = {
-    local: '店家外送',
-    '711': '7-11 取貨',
-    family: '全家取貨',
-    home: '黑貓宅急便',
-    mail: '郵寄 (僅限濾掛)'
+    local: '店家外送', '711': '7-11 取貨', family: '全家取貨',
+    home: '黑貓宅急便', mail: '郵寄 (僅限濾掛)'
   }
   return map[method] || method
 }
@@ -114,9 +104,9 @@ const handleModalClose = () => {
 
 // 送出訂單
 const submitOrder = async () => {
-  // 驗證邏輯
-  if (!form.name || !form.phone) {
-    showModal('資料不完整', '請填寫姓名與電話', true)
+  // 檢查基本資料
+  if (!form.name || !form.phone || !form.email) {
+    showModal('資料不完整', '請填寫姓名、電話與 Email', true)
     return
   }
   
@@ -135,15 +125,10 @@ const submitOrder = async () => {
   try {
     // 組合地址字串
     let addressString = ''
-    if (form.shippingMethod === '711') {
-      addressString = `[7-11取貨] ${form.storeInfo}`
-    } else if (form.shippingMethod === 'family') {
-      addressString = `[全家取貨] ${form.storeInfo}`
-    } else if (form.locationType === 'hualien') {
-      addressString = `[花蓮外送] ${form.address}`
-    } else {
-      addressString = `[宅配] ${form.address}`
-    }
+    if (form.shippingMethod === '711') addressString = `[7-11取貨] ${form.storeInfo}`
+    else if (form.shippingMethod === 'family') addressString = `[全家取貨] ${form.storeInfo}`
+    else if (form.locationType === 'hualien') addressString = `[花蓮外送] ${form.address}`
+    else addressString = `[宅配] ${form.address}`
 
     const customerPayload = {
       name: form.name,
@@ -373,8 +358,16 @@ const submitOrder = async () => {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Email (選填)</label>
-            <input v-model="form.email" type="email" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-700 outline-none">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Email <span class="text-red-500">*</span>
+            </label>
+            <input 
+              v-model="form.email" 
+              type="email" 
+              required
+              placeholder="example@email.com"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-700 outline-none"
+            >
           </div>
 
           <div>
