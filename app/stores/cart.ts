@@ -17,7 +17,9 @@ interface CustomerDraft {
   email: string
   address: string
   note: string
-  dessertNote: string // <--- 這行一定要有！
+  dessertNote: string // 甜點客製化
+  pickupDate: string // 取貨/外送日期
+  pickupTime: string // 取貨/外送時間
 }
 
 export const useCartStore = defineStore('cart', {
@@ -34,18 +36,22 @@ export const useCartStore = defineStore('cart', {
       email: '',
       address: '',
       note: '',
-      dessertNote: '' // ★ 新增：甜點專屬備註
+      dessertNote: '',     // 甜點專屬備註
+      pickupDate: '',      // 預設空白
+      pickupTime: '14:00', // 預設下午兩點
     } as CustomerDraft
   }),
 
   getters: {
-    subtotal: (state) => {
-      return state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
-    },
+    subtotal: (state) => state.items.reduce((total, item) => total + (item.price * item.quantity), 0),
+    totalItems: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
+    // subtotal: (state) => {
+    //   return state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
+    // },
     
-    totalItems: (state) => {
-      return state.items.reduce((total, item) => total + item.quantity, 0)
-    },
+    // totalItems: (state) => {
+    //   return state.items.reduce((total, item) => total + item.quantity, 0)
+    // },
 
     // 溫層判斷邏輯
     shippingCondition: (state) => {
@@ -55,13 +61,14 @@ export const useCartStore = defineStore('cart', {
       const hasCake = state.items.some(item => item.category === 'cake')
 
       if (hasCoffee && hasCake) return 'mixed'
-      if (hasCake) return 'cool'
+      if (hasCake) return 'cold'
       return 'normal'
     },
     // ★ 新增 Getter：檢查購物車內是否有蛋糕
-    hasCake: (state) => {
-      return state.items.some(item => item.category === 'cake')
-    }
+    hasCake: (state) => state.items.some(item => item.category === 'cake')
+    // hasCake: (state) => {
+    //   return state.items.some(item => item.category === 'cake')
+    // }
   },
 
   actions: {
@@ -106,7 +113,9 @@ export const useCartStore = defineStore('cart', {
         email: '',
         address: '',
         note: '',
-        dessertNote: '' // ★ 修正重點 4：重置時也要加
+        dessertNote: '',
+        pickupDate: '',       // 取貨/外送日期
+        pickupTime: '15:00',  // 取貨/外送時間
       }
       this.saveToLocalStorage()
     },
