@@ -5,7 +5,7 @@ const cartStore = useCartStore()
 const shippingTip = computed(() => {
   switch (cartStore.shippingCondition) {
     case 'normal': return '本單將使用常溫配送'
-    case 'cool': return '本單將使用低溫/冷藏配送'
+    case 'cold': return '本單將使用低溫/冷藏配送'
     case 'mixed': return '⚠️ 訂單包含常溫與冷藏商品，運費將分開計算或以冷藏寄送，將由專人與您確認。'
     default: return ''
   }
