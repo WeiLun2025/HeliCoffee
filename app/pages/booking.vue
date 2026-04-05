@@ -106,7 +106,7 @@ const submitBooking = async () => {
     <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
       <div class="md:w-1/2 h-64 md:h-auto relative bg-gray-800">
         <img 
-          src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1000&auto=format&fit=crop" 
+          src="/images/booking.jpg" 
           alt="Cozy Coffee Shop" 
           class="absolute inset-0 w-full h-full object-cover opacity-80"
         >

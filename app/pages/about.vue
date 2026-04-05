@@ -20,7 +20,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div class="relative aspect-[4/5] rounded-lg overflow-hidden shadow-xl group">
           <img 
-            src="https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=1000" 
+            src="/images/about.jpg" 
             alt="河狸咖啡店內氛圍" 
             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           >
