@@ -15,9 +15,18 @@ watch(() => props.isOpen, (newValue) => {
   // 確保在客戶端執行 (Nuxt SSR 防呆)
   if (import.meta.client) {
     if (newValue) {
-      document.body.style.overflow = 'hidden' // 鎖住滾輪
+      // 1. 計算當下瀏覽器卷軸的寬度
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      
+      // 2. 把這個寬度加到 body 的右邊距 (撐住原本卷軸的空間)
+      document.body.style.paddingRight = `${scrollbarWidth}px`
+      
+      // 3. 鎖住滾輪
+      document.body.style.overflow = 'hidden' 
     } else {
-      document.body.style.overflow = '' // 恢復滾輪
+      // 彈窗關閉 -> 恢復原狀
+      document.body.style.paddingRight = ''
+      document.body.style.overflow = '' 
     }
   }
 })
@@ -25,6 +34,7 @@ watch(() => props.isOpen, (newValue) => {
 // 組件卸載時防呆 (確保離開頁面後滾輪恢復)
 onUnmounted(() => {
   if (import.meta.client) {
+    document.body.style.paddingRight = ''
     document.body.style.overflow = ''
   }
 })

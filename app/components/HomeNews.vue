@@ -1,6 +1,8 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useNewsStore } from '~/stores/news'
+// ★ 引入共用的彈窗元件
+import AppModal from '~/components/AppModal.vue'
 
 const newsStore = useNewsStore()
 
@@ -27,6 +29,28 @@ const formatDate = (isoString) => {
     month: '2-digit',
     day: '2-digit'
   })
+}
+
+// ==========================================
+// ★ 新增：彈窗控制邏輯
+// ==========================================
+const newsModal = ref({
+  isOpen: false,
+  title: '',
+  content: '',
+  date: '',
+  tag: ''
+})
+
+// 點擊「閱讀更多」時觸發
+const openNewsDetail = (item) => {
+  newsModal.value = {
+    isOpen: true,
+    title: item.title,
+    content: item.content,
+    date: item.date,
+    tag: item.tag
+  }
 }
 </script>
 
@@ -71,13 +95,39 @@ const formatDate = (isoString) => {
           </p>
           
           <div class="mt-4 pt-4 border-t border-stone-200">
-             <span class="text-amber-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+            <button 
+                @click="openNewsDetail(item)"
+                class="text-amber-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all outline-none"
+              >
                閱讀更多 <span>→</span>
-             </span>
+             </button>
           </div>
         </div>
       </div>
 
     </div>
+
+    <AppModal 
+      :is-open="newsModal.isOpen"
+      :title="newsModal.title"
+      :is-error="false"
+      @close="newsModal.isOpen = false"
+    >
+      <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+          <span class="text-xs text-stone-500 font-mono">
+            發布日期：{{ formatDate(newsModal.date) }}
+          </span>
+          <span :class="getTagColor(newsModal.tag)" class="text-xs font-bold px-3 py-1 rounded-full">
+            {{ newsModal.tag }}
+          </span>
+        </div>
+        
+        <p class="text-stone-700 leading-relaxed whitespace-pre-wrap text-justify">
+          {{ newsModal.content }}
+        </p>
+      </div>
+    </AppModal>
+
   </section>
 </template>
