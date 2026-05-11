@@ -4,6 +4,15 @@
 
 <template>
   <div class="flex flex-col min-h-screen font-sans text-[#2C1810] bg-[#F8F5F2]">
+
+    <!-- ★ 測試階段全域置頂橫幅 -->
+    <div class="bg-amber-400 text-amber-950 px-4 py-2 text-sm md:text-base font-bold text-center z-50 flex items-center justify-center gap-2 shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+        <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd" />
+      </svg>
+      <span>目前網站為 Beta 測試階段，暫不開放真實下單與訂位，敬請見諒。</span>
+    </div>
+    
     <AppNavbar />
 
     <main class="flex-grow">
